@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -75,12 +77,22 @@ public class CallSuperSessionFilter extends SuperSessionFilter {
       Class<?> superClass = thisClass.getSuperclass();
       if (Filter.class.isAssignableFrom(superClass)) {
         invokeInSuper(config);
-        MethodType type = MethodType.methodType(void.class, ServletRequest.class, ServletResponse.class,
-            FilterChain.class);
         try {
-          supеrDoFiltеr = MethodHandles.lookup().findSpecial(superClass, "doFilter", type, thisClass);
-          type = MethodType.methodType(void.class, FilterConfig.class);
-          supеrInit = MethodHandles.lookup().findSpecial(superClass, "init", type, thisClass);
+        	Method[] superMethods = superClass.getDeclaredMethods();
+        	for(int i = 0; i < superMethods.length; i++) {
+              if ("doFilter".equals(superMethods[i].getName())) {
+                if(!Modifier.isAbstract(superMethods[i].getModifiers())) {
+                  MethodType type = MethodType.methodType(void.class, ServletRequest.class, ServletResponse.class, FilterChain.class);
+                  supеrDoFiltеr = MethodHandles.lookup().findSpecial(superClass, "doFilter", type, thisClass);
+                }
+              }
+              if ("init".equals(superMethods[i].getName())) {
+                if(!Modifier.isAbstract(superMethods[i].getModifiers())) {
+                  MethodType type = MethodType.methodType(void.class, FilterConfig.class);
+                  supеrInit = MethodHandles.lookup().findSpecial(superClass, "init", type, thisClass);
+                }
+              }
+        	}
         } catch (NoSuchMethodException e) {
           logger.debug("There is no {} element in parent class {} of filter {} ", e.getMessage(), superClass,
               thisClass);

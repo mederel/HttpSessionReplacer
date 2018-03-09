@@ -7,3 +7,7 @@ dependency-reduced-pom.xml
 pom.xml.versionsBackup
 /.idea/
 /*.iml
+
+# GIT TMP FILES
+*.orig
+*.rej
