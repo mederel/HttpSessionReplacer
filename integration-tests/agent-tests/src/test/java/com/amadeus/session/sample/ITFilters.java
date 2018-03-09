@@ -64,6 +64,12 @@ public class ITFilters {
     assertFullInstrumentedFilter(AbstractFilter.class);
   }
 
+  @Test
+  public void testDerivedFromAbstractAndImplementsFilter() throws Exception {
+    assertFullInstrumentedFilter(DerivedFromAbstractNoMethodFilter.class);
+    invokeInit(DerivedFromAbstractNoMethodFilter.class, 2);
+  }
+
   static void assertFullInstrumentedFilter(Class<?> clazz) throws Exception {
     assertTrue("Missing destroy method", hasDestroy(clazz));
     assertTrue("Missing declared init method", hasDeclaredInit(clazz));

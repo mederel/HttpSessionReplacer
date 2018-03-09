@@ -2,14 +2,12 @@ package com.amadeus.session.agent;
 
 import static com.amadeus.session.agent.SessionAgent.debug;
 import static com.amadeus.session.agent.SessionAgent.error;
-import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ANEWARRAY;
-import static org.objectweb.asm.Opcodes.ARRAYLENGTH;
 import static org.objectweb.asm.Opcodes.ASM5;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.ATHROW;
@@ -28,18 +26,13 @@ import static org.objectweb.asm.Opcodes.ICONST_1;
 import static org.objectweb.asm.Opcodes.ICONST_2;
 import static org.objectweb.asm.Opcodes.ICONST_3;
 import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.IFNE;
 import static org.objectweb.asm.Opcodes.IFNONNULL;
 import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.IF_ICMPLT;
-import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INSTANCEOF;
-import static org.objectweb.asm.Opcodes.INTEGER;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.ISTORE;
 import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.RETURN;
@@ -74,7 +67,7 @@ import org.objectweb.asm.Type;
  * </code>
  */
 @Generated("manual using Bytecode plugin for Eclipse")
-public class FilterAdapter extends ClassVisitor {
+public class FilterAdapterOld extends ClassVisitor {
   private boolean abstractClass;
   private String filterClass;
   private String superClass;
@@ -82,7 +75,7 @@ public class FilterAdapter extends ClassVisitor {
   private boolean gotDoFilterMethod;
   private boolean addedStaticInit;
 
-  public FilterAdapter(ClassVisitor cv) {
+  public FilterAdapterOld(ClassVisitor cv) {
     super(ASM5, cv);
   }
 
@@ -189,7 +182,7 @@ public class FilterAdapter extends ClassVisitor {
     mv.visitVarInsn(ALOAD, 0);
     mv.visitVarInsn(ALOAD, 1);
     mv.visitMethodInsn(INVOKEINTERFACE, "javax/servlet/FilterConfig", "getServletContext",
-		"()Ljavax/servlet/ServletContext;", true);
+        "()Ljavax/servlet/ServletContext;", true);
     mv.visitFieldInsn(PUTFIELD, filterClass, "$$injected_servletContext", "Ljavax/servlet/ServletContext;");
     Label l7 = new Label();
     mv.visitLabel(l7);
@@ -217,43 +210,9 @@ public class FilterAdapter extends ClassVisitor {
     mv.visitVarInsn(ALOAD, 0);
     mv.visitVarInsn(ALOAD, 1);
     mv.visitMethodInsn(INVOKEVIRTUAL, filterClass, "$$invokeInSuper", "(Ljavax/servlet/FilterConfig;)V", false);
-    mv.visitLabel(l0);
-    mv.visitVarInsn(ALOAD, 3);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredMethods", "()[Ljava/lang/reflect/Method;", false);
-    mv.visitVarInsn(ASTORE, 4);
     Label l12 = new Label();
     mv.visitLabel(l12);
     mv.visitLineNumber(1, l12);
-    mv.visitInsn(ICONST_0);
-    mv.visitVarInsn(ISTORE, 5);
-    Label l13 = new Label();
-    mv.visitLabel(l13);
-    Label l14 = new Label();
-    mv.visitJumpInsn(GOTO, l14);
-    Label l15 = new Label();
-    mv.visitLabel(l15);
-    mv.visitLineNumber(83, l15);
-    mv.visitFrame(F_FULL, 6, new Object[] {filterClass, "javax/servlet/FilterConfig", "java/lang/Class", "java/lang/Class", "[Ljava/lang/reflect/Method;", INTEGER}, 0, new Object[] {});
-    mv.visitLdcInsn("doFilter");
-    mv.visitVarInsn(ALOAD, 4);
-    mv.visitVarInsn(ILOAD, 5);
-    mv.visitInsn(AALOAD);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "getName", "()Ljava/lang/String;", false);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
-    Label l16 = new Label();
-    mv.visitJumpInsn(IFEQ, l16);
-    Label l17 = new Label();
-    mv.visitLabel(l17);
-    mv.visitLineNumber(1, l17);
-    mv.visitVarInsn(ALOAD, 4);
-    mv.visitVarInsn(ILOAD, 5);
-    mv.visitInsn(AALOAD);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "getModifiers", "()I", false);
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/reflect/Modifier", "isAbstract", "(I)Z", false);
-    mv.visitJumpInsn(IFNE, l16);
-    Label l18 = new Label();
-    mv.visitLabel(l18);
-    mv.visitLineNumber(1, l18);
     mv.visitFieldInsn(GETSTATIC, "java/lang/Void", "TYPE", "Ljava/lang/Class;");
     mv.visitLdcInsn(Type.getType("Ljavax/servlet/ServletRequest;"));
     mv.visitInsn(ICONST_2);
@@ -266,82 +225,56 @@ public class FilterAdapter extends ClassVisitor {
     mv.visitInsn(ICONST_1);
     mv.visitLdcInsn(Type.getType("Ljavax/servlet/FilterChain;"));
     mv.visitInsn(AASTORE);
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", "(Ljava/lang/Class;Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/invoke/MethodType;", false);
-    mv.visitVarInsn(ASTORE, 6);
-    Label l19 = new Label();
-    mv.visitLabel(l19);
-    mv.visitLineNumber(1, l19);
+    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodType", "methodType",
+        "(Ljava/lang/Class;Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/invoke/MethodType;", false);
+    mv.visitVarInsn(ASTORE, 4);
+    mv.visitLabel(l0);
+    mv.visitLineNumber(1, l0);
     mv.visitVarInsn(ALOAD, 0);
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
+    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup",
+        "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
     mv.visitVarInsn(ALOAD, 3);
     mv.visitLdcInsn("doFilter");
-    mv.visitVarInsn(ALOAD, 6);
+    mv.visitVarInsn(ALOAD, 4);
     mv.visitVarInsn(ALOAD, 2);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
+    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial",
+        "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;",
+        false);
     mv.visitFieldInsn(PUTFIELD, filterClass, "$$injected_superDoFilter", "Ljava/lang/invoke/MethodHandle;");
-    mv.visitLabel(l16);
-    mv.visitLineNumber(1, l16);
-    mv.visitFrame(F_SAME, 0, null, 0, null);
-    mv.visitLdcInsn("init");
-    mv.visitVarInsn(ALOAD, 4);
-    mv.visitVarInsn(ILOAD, 5);
-    mv.visitInsn(AALOAD);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "getName", "()Ljava/lang/String;", false);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
-    Label l20 = new Label();
-    mv.visitJumpInsn(IFEQ, l20);
-    Label l21 = new Label();
-    mv.visitLabel(l21);
-    mv.visitLineNumber(90, l21);
-    mv.visitVarInsn(ALOAD, 4);
-    mv.visitVarInsn(ILOAD, 5);
-    mv.visitInsn(AALOAD);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "getModifiers", "()I", false);
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/reflect/Modifier", "isAbstract", "(I)Z", false);
-    mv.visitJumpInsn(IFNE, l20);
-    Label l22 = new Label();
-    mv.visitLabel(l22);
-    mv.visitLineNumber(1, l22);
+    Label l13 = new Label();
+    mv.visitLabel(l13);
     mv.visitFieldInsn(GETSTATIC, "java/lang/Void", "TYPE", "Ljava/lang/Class;");
     mv.visitLdcInsn(Type.getType("Ljavax/servlet/FilterConfig;"));
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodType", "methodType", "(Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/invoke/MethodType;", false);
-    mv.visitVarInsn(ASTORE, 6);
-    Label l23 = new Label();
-    mv.visitLabel(l23);
-    mv.visitLineNumber(1, l23);
+    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodType", "methodType",
+        "(Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/invoke/MethodType;", false);
+    mv.visitVarInsn(ASTORE, 4);
+    Label l14 = new Label();
+    mv.visitLabel(l14);
     mv.visitVarInsn(ALOAD, 0);
-    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
+    mv.visitMethodInsn(INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup",
+        "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
     mv.visitVarInsn(ALOAD, 3);
     mv.visitLdcInsn("init");
-    mv.visitVarInsn(ALOAD, 6);
-    mv.visitVarInsn(ALOAD, 2);
-    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;", false);
-    mv.visitFieldInsn(PUTFIELD, filterClass, "$$injected_superInit", "Ljava/lang/invoke/MethodHandle;");
-    mv.visitLabel(l20);
-    mv.visitLineNumber(1, l20);
-    mv.visitFrame(F_SAME, 0, null, 0, null);
-    mv.visitIincInsn(5, 1);
-    mv.visitLabel(l14);
-    mv.visitFrame(F_SAME, 0, null, 0, null);
-    mv.visitVarInsn(ILOAD, 5);
     mv.visitVarInsn(ALOAD, 4);
-    mv.visitInsn(ARRAYLENGTH);
-    mv.visitJumpInsn(IF_ICMPLT, l15);
+    mv.visitVarInsn(ALOAD, 2);
+    mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/invoke/MethodHandles$Lookup", "findSpecial",
+        "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/Class;)Ljava/lang/invoke/MethodHandle;",
+        false);
+    mv.visitFieldInsn(PUTFIELD, filterClass, "$$injected_superInit", "Ljava/lang/invoke/MethodHandle;");
     mv.visitLabel(l1);
-    mv.visitLineNumber(1, l1);
     mv.visitJumpInsn(GOTO, l5);
     mv.visitLabel(l2);
-    mv.visitFrame(F_FULL, 4, new Object[] {filterClass, "javax/servlet/FilterConfig", "java/lang/Class", "java/lang/Class"}, 1, new Object[] {"java/lang/NoSuchMethodException"});
-    mv.visitVarInsn(ASTORE, 4);
-    Label l24 = new Label();
-    mv.visitLabel(l24);
-    mv.visitLineNumber(1, l24);
+    mv.visitFrame(F_FULL, 5, new Object[] { filterClass, "javax/servlet/FilterConfig", "java/lang/Class",
+        "java/lang/Class", "java/lang/invoke/MethodType" }, 1, new Object[] { "java/lang/NoSuchMethodException" });
+    mv.visitVarInsn(ASTORE, 5);
+    Label l15 = new Label();
+    mv.visitLabel(l15);
     mv.visitLdcInsn("There is no %s element in parent class %s of filter %s ");
     mv.visitInsn(ICONST_3);
     mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
     mv.visitInsn(DUP);
     mv.visitInsn(ICONST_0);
-    mv.visitVarInsn(ALOAD, 4);
+    mv.visitVarInsn(ALOAD, 5);
     mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/NoSuchMethodException", "getMessage", "()Ljava/lang/String;", false);
     mv.visitInsn(AASTORE);
     mv.visitInsn(DUP);
@@ -350,26 +283,18 @@ public class FilterAdapter extends ClassVisitor {
     mv.visitInsn(AASTORE);
     mv.visitInsn(DUP);
     mv.visitInsn(ICONST_2);
-    Label l25 = new Label();
-    mv.visitLabel(l25);
-    mv.visitLineNumber(1, l25);
     mv.visitVarInsn(ALOAD, 2);
     mv.visitInsn(AASTORE);
-    Label l26 = new Label();
-    mv.visitLabel(l26);
-    mv.visitLineNumber(1, l26);
     mv.visitMethodInsn(INVOKESTATIC, filterClass, "$$debug",
         "(Ljava/lang/String;[Ljava/lang/Object;)V", false);
-    Label l27 = new Label();
-    mv.visitLabel(l27);
+    Label l16 = new Label();
+    mv.visitLabel(l16);
     mv.visitJumpInsn(GOTO, l5);
     mv.visitLabel(l3);
-    mv.visitLineNumber(1, l3);
-    mv.visitFrame(F_SAME1, 0, null, 1, new Object[] {"java/lang/IllegalAccessException"});
-    mv.visitVarInsn(ASTORE, 4);
-    Label l28 = new Label();
-    mv.visitLabel(l28);
-    mv.visitLineNumber(1, l28);
+    mv.visitFrame(F_SAME1, 0, null, 1, new Object[] { "java/lang/IllegalAccessException" });
+    mv.visitVarInsn(ASTORE, 5);
+    Label l17 = new Label();
+    mv.visitLabel(l17);
     mv.visitLdcInsn("Unable to access element in parent class %s of filter %s. Cause %s");
     mv.visitInsn(ICONST_3);
     mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
@@ -383,28 +308,23 @@ public class FilterAdapter extends ClassVisitor {
     mv.visitInsn(AASTORE);
     mv.visitInsn(DUP);
     mv.visitInsn(ICONST_2);
-    mv.visitVarInsn(ALOAD, 4);
+    mv.visitVarInsn(ALOAD, 5);
     mv.visitInsn(AASTORE);
     mv.visitMethodInsn(INVOKESTATIC, filterClass, "$$debug",
         "(Ljava/lang/String;[Ljava/lang/Object;)V", false);
-
     mv.visitLabel(l5);
-    mv.visitLineNumber(1, l5);
-    mv.visitFrame(F_CHOP,2, null, 0, null);
+    mv.visitFrame(F_CHOP, 3, null, 0, null);
     mv.visitInsn(RETURN);
-    Label l29 = new Label();
-    mv.visitLabel(l29);
-    mv.visitLocalVariable("this", "L" + filterClass + ";", null, l4, l29, 0);
-    mv.visitLocalVariable("config", "Ljavax/servlet/FilterConfig;", null, l4, l29, 1);
+    Label l18 = new Label();
+    mv.visitLabel(l18);
+    mv.visitLocalVariable("e", "Ljava/lang/NoSuchMethodException;", null, l15, l16, 5);
+    mv.visitLocalVariable("e", "Ljava/lang/IllegalAccessException;", null, l17, l5, 5);
+    mv.visitLocalVariable("type", "Ljava/lang/invoke/MethodType;", null, l0, l5, 4);
     mv.visitLocalVariable("thisClass", "Ljava/lang/Class;", "Ljava/lang/Class<*>;", l9, l5, 2);
     mv.visitLocalVariable("superClass", "Ljava/lang/Class;", "Ljava/lang/Class<*>;", l10, l5, 3);
-    mv.visitLocalVariable("superMethods", "[Ljava/lang/reflect/Method;", null, l12, l1, 4);
-    mv.visitLocalVariable("i", "I", null, l13, l1, 5);
-    mv.visitLocalVariable("type", "Ljava/lang/invoke/MethodType;", null, l19, l16, 6);
-    mv.visitLocalVariable("type", "Ljava/lang/invoke/MethodType;", null, l23, l20, 6);
-    mv.visitLocalVariable("e", "Ljava/lang/NoSuchMethodException;", null, l24, l27, 4);
-    mv.visitLocalVariable("e", "Ljava/lang/IllegalAccessException;", null, l28, l5, 4);
-    mv.visitMaxs(6, 7);
+    mv.visitLocalVariable("this", "L" + filterClass + ";", null, l4, l18, 0);
+    mv.visitLocalVariable("config", "Ljavax/servlet/FilterConfig;", null, l4, l18, 1);
+    mv.visitMaxs(6, 6);
     mv.visitEnd();
   }
 

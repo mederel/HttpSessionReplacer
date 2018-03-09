@@ -74,7 +74,7 @@
             </goals>
             <configuration>
               <forkCount>1</forkCount>
-              <argLine>-javaagent:${project.build.directory}/agent/session-agent-${project.version}.jar</argLine>
+              <argLine>-javaagent:${project.build.directory}/agent/session-agent-${project.version}.jar=log=debug</argLine>
               <summaryFile>target/failsafe-reports/failsafe-summary-instrumentation.xml</summaryFile>
             </configuration>
           </execution>
@@ -85,7 +85,7 @@
             </goals>
             <configuration>
               <forkCount>1</forkCount>
-              <argLine>-javaagent:${project.build.directory}/agent/session-agent-${project.version}.jar=interceptListeners=true</argLine>
+              <argLine>-javaagent:${project.build.directory}/agent/session-agent-${project.version}.jar=log=debug,interceptListeners=true</argLine>
               <includes>
                 <include>**/IT*.java</include>
                 <include>**/ListenerIT*.java</include>
