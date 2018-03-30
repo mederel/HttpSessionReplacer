@@ -85,26 +85,26 @@ public class TestServletContextAndFilterTransformer {
     byte[] classfileBuffer = readFully(is);
     byte[] result = sct.transform(clazz.getClassLoader(),
         clazz.getName(), clazz, protectionDomain, classfileBuffer);
-    assertNull(result);
+    assertNotNull(result);
   }
 
   @Test
   public void testTransformBaseAndDerivedFilter() throws IOException {
     SessionSupportTransformer sct = new SessionSupportTransformer(false);
     ProtectionDomain protectionDomain = mock(ProtectionDomain.class);
-
+    byte[] classFileBuffer = null;
     Class<MockAbstractFilter> abstractClazz = MockAbstractFilter.class;
     InputStream isAbstract = abstractClazz.getClassLoader().getResourceAsStream("com/amadeus/session/agent/MockAbstractFilter.class");
-    byte[] classfileBuffer = readFully(isAbstract);
+    classFileBuffer = readFully(isAbstract);
     byte[] abstractResult = sct.transform(abstractClazz.getClassLoader(),
-        abstractClazz.getName(), abstractClazz, protectionDomain, classfileBuffer);
+        abstractClazz.getName(), abstractClazz, protectionDomain, classFileBuffer);
     assertNotNull(abstractResult);
 
     Class<MockDerivedFilter> derivedClazz = MockDerivedFilter.class;
     InputStream isDerived = derivedClazz.getClassLoader().getResourceAsStream("com/amadeus/session/agent/MockDerivedFilter.class");
-    classfileBuffer = readFully(isDerived);
+    classFileBuffer = readFully(isDerived);
     byte[] derivedResult = sct.transform(derivedClazz.getClassLoader(),
-        derivedClazz.getName(), derivedClazz, protectionDomain, classfileBuffer);
+        derivedClazz.getName(), derivedClazz, protectionDomain, classFileBuffer);
     assertNotNull(derivedResult);
   }
 

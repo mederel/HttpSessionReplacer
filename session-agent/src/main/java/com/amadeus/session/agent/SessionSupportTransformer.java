@@ -6,7 +6,9 @@ import static org.objectweb.asm.Opcodes.ASM5;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -47,6 +49,8 @@ class SessionSupportTransformer implements ClassFileTransformer {
       return cw.toByteArray();
     }
     FilterCandidateFinder filterFinder = new FilterCandidateFinder();
+    filterFinder.setClassBeingRedefined(classBeingRedefined);
+
     cr.accept(filterFinder, 0);
     if (filterFinder.candidate) {
       debug("Transforming Filter implementation %s", className);
@@ -120,6 +124,8 @@ class SessionSupportTransformer implements ClassFileTransformer {
    */
   class FilterCandidateFinder extends ClassVisitor {
     private static final String SESSION_FILTER = "com/amadeus/session/servlet/SessionFilter";
+    private static final String JAVAX_SERVLET_FILTER = "javax/servlet/Filter";
+    private Class<?> classBeingRedefined;
     boolean candidate;
 
     FilterCandidateFinder() {
@@ -130,20 +136,7 @@ class SessionSupportTransformer implements ClassFileTransformer {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       // Ignore our filter
       if (!name.equals(SESSION_FILTER)) {
-        // Check if super class has already been identified as a filter context
-        if (filterClasses.contains(superName)) {
-          candidate = true;
-          debug("Filter is candidate by inheritance (%s extends %s)", name, superName);
-        } else {
-          // Then find if class implements Filter interface
-          for (String iface : interfaces) {
-            if ("javax/servlet/Filter".equals(iface)) {
-              candidate = true;
-              debug("Filter is candidate by interface implementation (%s implements %s)", name, iface);
-              break;
-            }
-          }
-        }
+        candidate = isFilterByInheritance(this.classBeingRedefined) ||  implementsFilter(interfaces);
       } else {
         SessionAgent.debug("Ignoring filter ", name);
       }
@@ -155,6 +148,60 @@ class SessionSupportTransformer implements ClassFileTransformer {
         }
       }
       super.visit(version, access, name, signature, superName, interfaces);
+    }
+
+    boolean isFilterByInheritance(Class<?> classToCheck) {
+      Class<?> superClass = classToCheck.getSuperclass();
+      if (superClass == null || superClass.equals(Object.class)) {
+        return  false;
+      }
+      String superName = replaceDots(superClass.getName());
+      String className = replaceDots(classToCheck.getName());
+
+      if (filterClasses.contains(superName)) {
+        candidate = true;
+        debug("Filter is candidate by inheritance (%s extends %s)", className, superName);
+        return true;
+      } else {
+        //if the parent hasn't processed yet, check if the parent is a filter.
+        Class<?>[] superInterfaces = superClass.getInterfaces();
+        if (superInterfaces == null || superInterfaces.length == 0) {
+          return this.isFilterByInheritance(superClass);
+        }
+
+        List<String> superInterfacesNames = new ArrayList<>();
+        for(Class<?> superInterface : superInterfaces){
+          superInterfacesNames.add(superInterface.getName());
+        }
+
+        boolean isFilterImplementation = implementsFilter(superInterfacesNames.toArray(new String[superInterfaces.length]));
+        if(isFilterImplementation){
+          debug("Filter is candidate as it extends a Filter implementation", className);
+        }
+        return isFilterImplementation;
+      }
+    }
+    
+    private boolean implementsFilter(String[] interfaces){
+      for (String iface : interfaces) {
+        iface = replaceDots(iface);
+        if (JAVAX_SERVLET_FILTER.equals(iface)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    void setClassBeingRedefined(Class<?> classBeingRedefined) {
+      this.classBeingRedefined = classBeingRedefined;
+    }
+
+    public Class<?> getClassBeingRedefined(){
+      return this.classBeingRedefined;
+    }
+
+    private String replaceDots(String string){
+      return  string.replaceAll("[.]","/");
     }
   }
 
