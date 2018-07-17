@@ -1,14 +1,17 @@
 package com.amadeus.session.agent;
 
-import static com.amadeus.session.agent.SessionAgent.debug;
-import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
-import static org.objectweb.asm.Opcodes.ASM5;
+import static com.amadeus.session.agent.SessionAgent.*;
+import static org.objectweb.asm.ClassWriter.*;
+import static org.objectweb.asm.Opcodes.*;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -25,18 +28,31 @@ import org.objectweb.asm.Opcodes;
  */
 class SessionSupportTransformer implements ClassFileTransformer {
   HashSet<String> servletContextClasses = new HashSet<>();
-  HashSet<String> filterClasses = new HashSet<>();
+
+  /**
+   * Keeps track of all filter classes found and
+   */
+  Map<String, Set<String>> classTree = new HashMap<>();
+
   HashSet<String> listenerClasses = new HashSet<>();
+
   private final boolean interceptListeners;
 
   SessionSupportTransformer(boolean interceptListeners) {
     this.interceptListeners = interceptListeners;
   }
 
+
+
   @Override
   public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
       ProtectionDomain protectionDomain, byte[] classfileBuffer) {
     ClassReader cr = new ClassReader(classfileBuffer);
+
+
+    superclass
+    loader.loadClass()
+
     // We assume that class can only one of servlet context, filter or listener
     ServletContextCandidateFinder sh = new ServletContextCandidateFinder();
     cr.accept(sh, 0);
@@ -49,8 +65,6 @@ class SessionSupportTransformer implements ClassFileTransformer {
       return cw.toByteArray();
     }
     FilterCandidateFinder filterFinder = new FilterCandidateFinder();
-    filterFinder.setClassBeingRedefined(classBeingRedefined);
-
     cr.accept(filterFinder, 0);
     if (filterFinder.candidate) {
       debug("Transforming Filter implementation %s", className);
@@ -61,6 +75,7 @@ class SessionSupportTransformer implements ClassFileTransformer {
     }
     return interceptListenersIfNeeded(className, cr);
   }
+
 
   byte[] interceptListenersIfNeeded(String className, ClassReader cr) {
     if (interceptListeners) {
@@ -125,7 +140,6 @@ class SessionSupportTransformer implements ClassFileTransformer {
   class FilterCandidateFinder extends ClassVisitor {
     private static final String SESSION_FILTER = "com/amadeus/session/servlet/SessionFilter";
     private static final String JAVAX_SERVLET_FILTER = "javax/servlet/Filter";
-    private Class<?> classBeingRedefined;
     boolean candidate;
 
     FilterCandidateFinder() {
@@ -136,7 +150,7 @@ class SessionSupportTransformer implements ClassFileTransformer {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       // Ignore our filter
       if (!name.equals(SESSION_FILTER)) {
-        candidate = isFilterByInheritance(this.classBeingRedefined) ||  implementsFilter(interfaces);
+        candidate = isFilterByInheritance(superName) || implementsFilter(interfaces);
       } else {
         SessionAgent.debug("Ignoring filter ", name);
       }
@@ -150,23 +164,20 @@ class SessionSupportTransformer implements ClassFileTransformer {
       super.visit(version, access, name, signature, superName, interfaces);
     }
 
-    boolean isFilterByInheritance(Class<?> classToCheck) {
-      Class<?> superClass = classToCheck.getSuperclass();
+    boolean isFilterByInheritance(String name, String superName) {
       if (superClass == null || superClass.equals(Object.class)) {
         return  false;
       }
-      String superName = replaceDots(superClass.getName());
-      String className = replaceDots(classToCheck.getName());
 
       if (filterClasses.contains(superName)) {
         candidate = true;
-        debug("Filter is candidate by inheritance (%s extends %s)", className, superName);
+        debug("Filter is candidate by inheritance (%s extends %s)", name, superName);
         return true;
       } else {
         //if the parent hasn't processed yet, check if the parent is a filter.
         Class<?>[] superInterfaces = superClass.getInterfaces();
         if (superInterfaces == null || superInterfaces.length == 0) {
-          return this.isFilterByInheritance(superClass);
+          return isFilterByInheritance(superClass);
         }
 
         List<String> superInterfacesNames = new ArrayList<>();
