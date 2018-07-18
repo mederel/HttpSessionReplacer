@@ -51,7 +51,7 @@ public class ITFilters {
 
   @Test
   public void testDerivedAndImplementsFilter() throws Exception {
-    // assertFullInstrumentedFilter(DerivedAndImplementsFilter.class);
+    assertFullInstrumentedFilter(DerivedAndImplementsFilter.class);
     invokeInit(DerivedAndImplementsFilter.class, 2);
   }
 

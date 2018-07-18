@@ -1,14 +1,9 @@
 package com.amadeus.session.agent;
 
-import static java.lang.String.*;
+import static java.lang.String.format;
 
 import java.lang.instrument.Instrumentation;
 import java.text.Format;
-
-import javax.servlet.Filter;
-
-import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.matcher.ElementMatchers;
 
 /**
  * This agent enables instrumentation of ServletContext and Filter classes. See
@@ -101,11 +96,6 @@ public final class SessionAgent {
       if (interceptListener) {
         debug("Will modify listeners to capture registered ones.");
       }
-
-
-      new AgentBuilder.Default().type(ElementMatchers.isSubTypeOf(Filter.class))
-          .transform(new ByteBuddyFilterAdapter()).installOn(inst); // .type(ElementMatchers.isSubTypeOf(ServletContext.class));
-      // .transform(new ByteBuddyServletContextAdapter());
 
       inst.addTransformer(new SessionSupportTransformer(interceptListener));
     } else {
